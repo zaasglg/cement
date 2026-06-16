@@ -20,6 +20,7 @@ import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as ProcurementSlugRouteImport } from './routes/procurement.$slug'
 import { Route as CareersSlugRouteImport } from './routes/careers.$slug'
 import { Route as ApiUploadRouteImport } from './routes/api.upload'
+import { Route as AdminSiteContentRouteImport } from './routes/admin.site-content'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminProcurementsRouteImport } from './routes/admin.procurements'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -89,6 +90,11 @@ const ApiUploadRoute = ApiUploadRouteImport.update({
   id: '/api/upload',
   path: '/api/upload',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSiteContentRoute = AdminSiteContentRouteImport.update({
+  id: '/site-content',
+  path: '/site-content',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/products',
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/procurements': typeof AdminProcurementsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/site-content': typeof AdminSiteContentRoute
   '/api/upload': typeof ApiUploadRoute
   '/careers/$slug': typeof CareersSlugRoute
   '/procurement/$slug': typeof ProcurementSlugRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/site-content': typeof AdminSiteContentRoute
   '/api/upload': typeof ApiUploadRoute
   '/careers/$slug': typeof CareersSlugRoute
   '/procurement/$slug': typeof ProcurementSlugRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/procurements': typeof AdminProcurementsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/site-content': typeof AdminSiteContentRoute
   '/api/upload': typeof ApiUploadRoute
   '/careers/$slug': typeof CareersSlugRoute
   '/procurement/$slug': typeof ProcurementSlugRoute
@@ -250,6 +259,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/procurements'
     | '/admin/products'
+    | '/admin/site-content'
     | '/api/upload'
     | '/careers/$slug'
     | '/procurement/$slug'
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/leads'
     | '/admin/login'
+    | '/admin/site-content'
     | '/api/upload'
     | '/careers/$slug'
     | '/procurement/$slug'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/procurements'
     | '/admin/products'
+    | '/admin/site-content'
     | '/api/upload'
     | '/careers/$slug'
     | '/procurement/$slug'
@@ -410,6 +422,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/upload'
       preLoaderRoute: typeof ApiUploadRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/site-content': {
+      id: '/admin/site-content'
+      path: '/site-content'
+      fullPath: '/admin/site-content'
+      preLoaderRoute: typeof AdminSiteContentRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/products': {
       id: '/admin/products'
@@ -565,6 +584,7 @@ interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProcurementsRoute: typeof AdminProcurementsRouteWithChildren
   AdminProductsRoute: typeof AdminProductsRouteWithChildren
+  AdminSiteContentRoute: typeof AdminSiteContentRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -574,6 +594,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminProcurementsRoute: AdminProcurementsRouteWithChildren,
   AdminProductsRoute: AdminProductsRouteWithChildren,
+  AdminSiteContentRoute: AdminSiteContentRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

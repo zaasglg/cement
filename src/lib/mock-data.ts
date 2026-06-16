@@ -36,11 +36,43 @@ export type Job = {
   conditions: Localized[];
 };
 
+export type SiteContent = {
+  home: {
+    metaTitle: Localized;
+    metaDescription: Localized;
+    heroBadge: Localized;
+    heroTitle: Localized;
+    heroText: Localized;
+    benefits: {
+      title: Localized;
+      text: Localized;
+    }[];
+    hubs: {
+      title: Localized;
+      sub: Localized;
+      text: Localized;
+    }[];
+  };
+  footer: {
+    companyName: Localized;
+    description: Localized;
+    phone: string;
+    email: string;
+    address: Localized;
+    whatsappUrl: string;
+    telegramUrl: string;
+    rights: Localized;
+  };
+};
+
 export type Category = { id: string; label: Localized };
 
 export const productCategories: Category[] = [
   { id: "bulk", label: { ru: "Цемент навалом", kk: "Үйілмелі цемент", en: "Bulk cement" } },
-  { id: "bagged", label: { ru: "Тарированный цемент (мешки/биг-бэги)", en: "Bagged cement (bags / big-bags)" } },
+  {
+    id: "bagged",
+    label: { ru: "Тарированный цемент (мешки/биг-бэги)", en: "Bagged cement (bags / big-bags)" },
+  },
 ];
 
 export const procurementCategories: Category[] = [
@@ -56,10 +88,82 @@ export const jobCategories: Category[] = [
   { id: "admin", label: { ru: "Администрация", en: "Administration" } },
 ];
 
+export const siteContent: SiteContent = {
+  home: {
+    metaTitle: { ru: "ТОО Eurasian Cement — надежная основа вашего строительства" },
+    metaDescription: {
+      ru: "Производство и комплексные поставки высококачественного цемента по всему Казахстану. Автоматизированные технологии и строгий контроль качества по ГОСТ.",
+    },
+    heroBadge: { ru: "Цемент • Казахстан • ГОСТ" },
+    heroTitle: { ru: "ТОО Eurasian Cement — надежная основа вашего строительства" },
+    heroText: {
+      ru: "Производство и комплексные поставки высококачественного цемента по всему Казахстану. Автоматизированные технологии, строгий контроль качества по ГОСТ и бесперебойная логистика для объектов любого масштаба.",
+    },
+    benefits: [
+      {
+        title: { ru: "Стабильное качество" },
+        text: {
+          ru: "Собственная лаборатория, испытания каждой партии и строгое соответствие стандартам ГОСТ.",
+        },
+      },
+      {
+        title: { ru: "Объемы и сроки" },
+        text: {
+          ru: "Автоматизированное производство и персональный логистический автопарк для бесперебойных поставок.",
+        },
+      },
+      {
+        title: { ru: "Выгодное партнерство" },
+        text: {
+          ru: "Прямые поставки с завода и гибкие коммерческие условия для крупных застройщиков.",
+        },
+      },
+    ],
+    hubs: [
+      {
+        title: { ru: "РЕАЛИЗАЦИЯ" },
+        sub: { ru: "Каталог продукции" },
+        text: {
+          ru: "Ознакомьтесь с ассортиментом выпускаемой продукции. Продажа цемента различных марок навалом и в тарированном виде (мешки, биг-бэги).",
+        },
+      },
+      {
+        title: { ru: "ЗАКУПКИ" },
+        sub: { ru: "Нам требуется" },
+        text: {
+          ru: "Открытый тендерный сектор ТОО Eurasian Cement. Приглашаем к сотрудничеству поставщиков сырья, упаковочных материалов, логистических и ремонтных услуг.",
+        },
+      },
+      {
+        title: { ru: "КАРЬЕРА" },
+        sub: { ru: "Вакансии" },
+        text: {
+          ru: "Растите вместе с лидером отрасли. Ищем специалистов на производство, в логистику и коммерческий департамент.",
+        },
+      },
+    ],
+  },
+  footer: {
+    companyName: { ru: "ТОО Eurasian Cement" },
+    description: {
+      ru: "Производство и комплексные поставки высококачественного цемента по всему Казахстану.",
+    },
+    phone: "+7 (700) 000-00-00",
+    email: "sales@eurasiancement.kz",
+    address: { ru: "г. Алматы, Промышленная зона, 1" },
+    whatsappUrl: "https://wa.me/77000000000",
+    telegramUrl: "https://t.me/eurasiancement",
+    rights: { ru: "Все права защищены.", en: "All rights reserved." },
+  },
+};
+
 export const products: Product[] = [
   {
     slug: "cem-i-425n-m500-bulk",
-    title: { ru: "Портландцемент ЦЕМ I 42,5N (М500) навалом", en: "Portland cement CEM I 42.5N (M500) bulk" },
+    title: {
+      ru: "Портландцемент ЦЕМ I 42,5N (М500) навалом",
+      en: "Portland cement CEM I 42.5N (M500) bulk",
+    },
     category: "bulk",
     status: "in_stock",
     price: { ru: "от 28 500 ₸ / тонна" },
@@ -74,8 +178,14 @@ export const products: Product[] = [
     specs: [
       { label: { ru: "Класс прочности", en: "Strength class" }, value: { ru: "42,5N" } },
       { label: { ru: "Стандарт", en: "Standard" }, value: { ru: "ГОСТ 31108-2020" } },
-      { label: { ru: "Начало схватывания", en: "Initial set" }, value: { ru: "≥ 75 мин", en: "≥ 75 min" } },
-      { label: { ru: "Тонкость помола", en: "Fineness" }, value: { ru: "≥ 3000 см²/г", en: "≥ 3000 cm²/g" } },
+      {
+        label: { ru: "Начало схватывания", en: "Initial set" },
+        value: { ru: "≥ 75 мин", en: "≥ 75 min" },
+      },
+      {
+        label: { ru: "Тонкость помола", en: "Fineness" },
+        value: { ru: "≥ 3000 см²/г", en: "≥ 3000 cm²/g" },
+      },
       { label: { ru: "Форма поставки", en: "Supply form" }, value: { ru: "Навалом", en: "Bulk" } },
     ],
     image: "/images/product-bulk.jpg",
@@ -83,7 +193,10 @@ export const products: Product[] = [
   },
   {
     slug: "cem-ii-325n-m400-bags",
-    title: { ru: "Портландцемент ЦЕМ II/А-Ш 32,5N (М400) в мешках 50 кг", en: "Portland cement CEM II/A-S 32.5N (M400) 50 kg bags" },
+    title: {
+      ru: "Портландцемент ЦЕМ II/А-Ш 32,5N (М400) в мешках 50 кг",
+      en: "Portland cement CEM II/A-S 32.5N (M400) 50 kg bags",
+    },
     category: "bagged",
     status: "in_stock",
     price: { ru: "от 1 850 ₸ / мешок" },
@@ -99,14 +212,20 @@ export const products: Product[] = [
       { label: { ru: "Класс прочности", en: "Strength class" }, value: { ru: "32,5N" } },
       { label: { ru: "Фасовка", en: "Packaging" }, value: { ru: "Мешок 50 кг", en: "50 kg bag" } },
       { label: { ru: "Стандарт", en: "Standard" }, value: { ru: "ГОСТ 31108-2020" } },
-      { label: { ru: "Хранение", en: "Storage" }, value: { ru: "до 60 суток", en: "up to 60 days" } },
+      {
+        label: { ru: "Хранение", en: "Storage" },
+        value: { ru: "до 60 суток", en: "up to 60 days" },
+      },
     ],
     image: "/images/product-bags.jpg",
     gallery: ["/images/product-bags.jpg", "/images/product-bigbag.jpg", "/images/product-bulk.jpg"],
   },
   {
     slug: "cem-i-425n-bigbag",
-    title: { ru: "Цемент ЦЕМ I 42,5N в биг-бэгах 1000 кг", en: "Cement CEM I 42.5N in big-bags 1000 kg" },
+    title: {
+      ru: "Цемент ЦЕМ I 42,5N в биг-бэгах 1000 кг",
+      en: "Cement CEM I 42.5N in big-bags 1000 kg",
+    },
     category: "bagged",
     status: "on_order",
     price: { ru: "Цена по запросу" },
@@ -120,7 +239,10 @@ export const products: Product[] = [
     },
     specs: [
       { label: { ru: "Класс прочности", en: "Strength class" }, value: { ru: "42,5N" } },
-      { label: { ru: "Фасовка", en: "Packaging" }, value: { ru: "Биг-бэг 1000 кг", en: "Big-bag 1000 kg" } },
+      {
+        label: { ru: "Фасовка", en: "Packaging" },
+        value: { ru: "Биг-бэг 1000 кг", en: "Big-bag 1000 kg" },
+      },
       { label: { ru: "Стандарт", en: "Standard" }, value: { ru: "ГОСТ 31108-2020" } },
     ],
     image: "/images/product-bigbag.jpg",
@@ -128,7 +250,10 @@ export const products: Product[] = [
   },
   {
     slug: "sulfate-resistant-bulk",
-    title: { ru: "Сульфатостойкий цемент ССПЦ 400-Д20 навалом", en: "Sulfate-resistant cement SSPC 400-D20 bulk" },
+    title: {
+      ru: "Сульфатостойкий цемент ССПЦ 400-Д20 навалом",
+      en: "Sulfate-resistant cement SSPC 400-D20 bulk",
+    },
     category: "bulk",
     status: "on_order",
     price: { ru: "Цена по запросу" },
@@ -141,7 +266,10 @@ export const products: Product[] = [
       en: "Foundations in water-saturated soils, hydraulic and treatment structures, elements in aggressive sulfate environments.",
     },
     specs: [
-      { label: { ru: "Тип", en: "Type" }, value: { ru: "Сульфатостойкий", en: "Sulfate-resistant" } },
+      {
+        label: { ru: "Тип", en: "Type" },
+        value: { ru: "Сульфатостойкий", en: "Sulfate-resistant" },
+      },
       { label: { ru: "Стандарт", en: "Standard" }, value: { ru: "ГОСТ 22266-2013" } },
       { label: { ru: "Форма поставки", en: "Supply form" }, value: { ru: "Навалом", en: "Bulk" } },
     ],
@@ -153,7 +281,10 @@ export const products: Product[] = [
 export const procurements: Procurement[] = [
   {
     slug: "auto-vyvoz-yug",
-    title: { ru: "Услуги автовывоза цемента цементовозами (Южный регион)", en: "Cement haulage services by tankers (Southern region)" },
+    title: {
+      ru: "Услуги автовывоза цемента цементовозами (Южный регион)",
+      en: "Cement haulage services by tankers (Southern region)",
+    },
     category: "logistics",
     deadline: "2026-07-15",
     budget: { ru: "Договорной" },
@@ -163,13 +294,19 @@ export const procurements: Procurement[] = [
     },
     requirements: [
       { ru: "Парк цементовозов от 5 единиц", en: "Fleet of at least 5 cement tankers" },
-      { ru: "Опыт перевозки сыпучих грузов от 3 лет", en: "3+ years of bulk cargo transport experience" },
+      {
+        ru: "Опыт перевозки сыпучих грузов от 3 лет",
+        en: "3+ years of bulk cargo transport experience",
+      },
       { ru: "Готовность к регулярным рейсам", en: "Readiness for regular trips" },
     ],
   },
   {
     slug: "gips-postavka",
-    title: { ru: "Поставка гипсового камня для производства", en: "Supply of gypsum stone for production" },
+    title: {
+      ru: "Поставка гипсового камня для производства",
+      en: "Supply of gypsum stone for production",
+    },
     category: "raw",
     deadline: "2026-06-30",
     budget: { ru: "до 45 000 000 ₸", en: "up to 45 000 000 ₸" },
@@ -199,7 +336,10 @@ export const procurements: Procurement[] = [
   },
   {
     slug: "remont-konveyera",
-    title: { ru: "Ремонт и обслуживание ленточных конвейеров", en: "Repair and maintenance of belt conveyors" },
+    title: {
+      ru: "Ремонт и обслуживание ленточных конвейеров",
+      en: "Repair and maintenance of belt conveyors",
+    },
     category: "services",
     deadline: "2026-08-01",
     budget: { ru: "Договорной" },
@@ -208,7 +348,10 @@ export const procurements: Procurement[] = [
       en: "Contractor for scheduled and emergency repair of belt conveyor systems at the plant.",
     },
     requirements: [
-      { ru: "Опыт обслуживания промышленных конвейеров", en: "Industrial conveyor maintenance experience" },
+      {
+        ru: "Опыт обслуживания промышленных конвейеров",
+        en: "Industrial conveyor maintenance experience",
+      },
       { ru: "Собственная ремонтная бригада", en: "Own repair crew" },
     ],
   },
@@ -222,7 +365,10 @@ export const jobs: Job[] = [
     salary: { ru: "от 350 000 ₸" },
     location: { ru: "г. Алматы", en: "Almaty" },
     responsibilities: [
-      { ru: "Контроль технологического процесса производства цемента", en: "Control of the cement production process" },
+      {
+        ru: "Контроль технологического процесса производства цемента",
+        en: "Control of the cement production process",
+      },
       { ru: "Ведение производственной документации", en: "Maintaining production documentation" },
     ],
     requirements: [
@@ -231,7 +377,10 @@ export const jobs: Job[] = [
     ],
     conditions: [
       { ru: "Официальное трудоустройство", en: "Official employment" },
-      { ru: "Сменный график, доставка служебным транспортом", en: "Shift schedule, corporate transport" },
+      {
+        ru: "Сменный график, доставка служебным транспортом",
+        en: "Shift schedule, corporate transport",
+      },
     ],
   },
   {
@@ -241,7 +390,10 @@ export const jobs: Job[] = [
     salary: { ru: "от 450 000 ₸" },
     location: { ru: "г. Шымкент", en: "Shymkent" },
     responsibilities: [
-      { ru: "Перевозка цемента навалом по Казахстану", en: "Bulk cement transport across Kazakhstan" },
+      {
+        ru: "Перевозка цемента навалом по Казахстану",
+        en: "Bulk cement transport across Kazakhstan",
+      },
       { ru: "Контроль технического состояния ТС", en: "Vehicle technical condition control" },
     ],
     requirements: [
@@ -260,12 +412,18 @@ export const jobs: Job[] = [
     salary: { ru: "По результатам собеседования" },
     location: { ru: "г. Алматы", en: "Almaty" },
     responsibilities: [
-      { ru: "Развитие клиентской базы застройщиков и дилеров", en: "Developing a base of developers and dealers" },
+      {
+        ru: "Развитие клиентской базы застройщиков и дилеров",
+        en: "Developing a base of developers and dealers",
+      },
       { ru: "Ведение переговоров и заключение договоров", en: "Negotiations and contracts" },
     ],
     requirements: [
       { ru: "Опыт активных B2B продаж от 2 лет", en: "2+ years of active B2B sales" },
-      { ru: "Знание рынка стройматериалов будет преимуществом", en: "Knowledge of the building materials market is a plus" },
+      {
+        ru: "Знание рынка стройматериалов будет преимуществом",
+        en: "Knowledge of the building materials market is a plus",
+      },
     ],
     conditions: [
       { ru: "Оклад + прогрессивный бонус с продаж", en: "Base salary + progressive sales bonus" },

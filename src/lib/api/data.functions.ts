@@ -8,13 +8,9 @@ import {
   dbGetJobs,
   dbGetJob,
   dbAddLead,
+  dbGetSiteContent,
 } from "../db.server";
-import {
-  productCategories,
-  procurementCategories,
-  jobCategories,
-  type Lead,
-} from "../mock-data";
+import { productCategories, procurementCategories, jobCategories, type Lead } from "../mock-data";
 
 export const getProductsData = createServerFn({ method: "GET" }).handler(async () => ({
   products: dbGetProducts(),
@@ -44,6 +40,10 @@ export const getJobsData = createServerFn({ method: "GET" }).handler(async () =>
   jobs: dbGetJobs(),
   jobCategories,
 }));
+
+export const getSiteContent = createServerFn({ method: "GET" }).handler(async () => {
+  return dbGetSiteContent();
+});
 
 export const getJobData = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: z.string() }))

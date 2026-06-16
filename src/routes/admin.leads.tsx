@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,13 @@ const TYPE_COLORS: Record<Lead["type"], string> = {
   procurement: "bg-orange-500/10 text-orange-700",
   career: "bg-purple-500/10 text-purple-700",
 };
+
+function getLeadSourcePath(lead: Lead) {
+  if (!lead.ref) return null;
+  if (lead.type === "sales") return `/products/${lead.ref}`;
+  if (lead.type === "procurement") return `/procurement/${lead.ref}`;
+  return `/careers/${lead.ref}`;
+}
 
 function AdminLeads() {
   const router = useRouter();
@@ -73,7 +80,9 @@ function AdminLeads() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Имя / Компания</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Имя / Компания
+                </th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Телефон</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Тип</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Источник</th>
@@ -92,11 +101,25 @@ function AdminLeads() {
                     </a>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[lead.type]}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[lead.type]}`}
+                    >
                       {TYPE_LABELS[lead.type]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{lead.ref ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {getLeadSourcePath(lead) ? (
+                      <Link
+                        to={getLeadSourcePath(lead) ?? "/"}
+                        target="_blank"
+                        className="text-brand underline-offset-4 hover:underline"
+                      >
+                        {getLeadSourcePath(lead)}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="max-w-xs px-4 py-3 text-muted-foreground">
                     <p className="truncate">{lead.message || "—"}</p>
                   </td>

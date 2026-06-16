@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { getSiteContent } from "@/lib/api/data.functions";
 import { I18nProvider } from "@/lib/i18n";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -78,6 +79,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: async () => getSiteContent(),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -89,7 +91,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Производство и комплексные поставки высококачественного цемента по всему Казахстану. Контроль качества по ГОСТ и бесперебойная логистика.",
       },
       { name: "author", content: "Eurasian Cement" },
-      { property: "og:title", content: "ТОО Eurasian Cement — производство и поставка цемента в Казахстане" },
+      {
+        property: "og:title",
+        content: "ТОО Eurasian Cement — производство и поставка цемента в Казахстане",
+      },
       {
         property: "og:description",
         content: "Надежная основа вашего строительства — цемент по всему Казахстану.",
@@ -97,12 +102,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "ТОО Eurasian Cement — производство и поставка цемента в Казахстане" },
-      { name: "description", content: "A premium, modern corporate website for TОО Eurasian Cement, showcasing products, procurement, and careers." },
-      { property: "og:description", content: "A premium, modern corporate website for TОО Eurasian Cement, showcasing products, procurement, and careers." },
-      { name: "twitter:description", content: "A premium, modern corporate website for TОО Eurasian Cement, showcasing products, procurement, and careers." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ad3635dc-d661-410c-9f43-d7733da6950d/id-preview-9dbcd09b--7a6e395c-58ed-4951-b00d-4f4a45331805.lovable.app-1780830407686.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ad3635dc-d661-410c-9f43-d7733da6950d/id-preview-9dbcd09b--7a6e395c-58ed-4951-b00d-4f4a45331805.lovable.app-1780830407686.png" },
+      {
+        name: "twitter:title",
+        content: "ТОО Eurasian Cement — производство и поставка цемента в Казахстане",
+      },
+      {
+        name: "description",
+        content:
+          "A premium, modern corporate website for TОО Eurasian Cement, showcasing products, procurement, and careers.",
+      },
+      {
+        property: "og:description",
+        content:
+          "A premium, modern corporate website for TОО Eurasian Cement, showcasing products, procurement, and careers.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "A premium, modern corporate website for TОО Eurasian Cement, showcasing products, procurement, and careers.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ad3635dc-d661-410c-9f43-d7733da6950d/id-preview-9dbcd09b--7a6e395c-58ed-4951-b00d-4f4a45331805.lovable.app-1780830407686.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ad3635dc-d661-410c-9f43-d7733da6950d/id-preview-9dbcd09b--7a6e395c-58ed-4951-b00d-4f4a45331805.lovable.app-1780830407686.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -139,6 +167,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const siteContent = Route.useLoaderData();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname.startsWith("/admin");
 
@@ -154,7 +183,7 @@ function RootComponent() {
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
               <Outlet />
             </main>
-            <Footer />
+            <Footer content={siteContent.footer} />
           </div>
         )}
         <Toaster position="top-right" richColors />

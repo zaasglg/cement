@@ -19,11 +19,56 @@ import {
   dbDeleteJob,
   dbGetLeads,
   dbDeleteLead,
+  dbGetSiteContent,
+  dbUpdateSiteContent,
 } from "../db.server";
-import type { Product, Procurement, Job } from "../mock-data";
+import type { Product, Procurement, Job, SiteContent } from "../mock-data";
 
 const COOKIE_NAME = "admin_session";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin";
+
+const LocalizedSchema = z.object({
+  ru: z.string(),
+  kk: z.string().optional(),
+  en: z.string().optional(),
+});
+
+const SiteContentSchema = z.object({
+  home: z.object({
+    metaTitle: LocalizedSchema,
+    metaDescription: LocalizedSchema,
+    heroBadge: LocalizedSchema,
+    heroTitle: LocalizedSchema,
+    heroText: LocalizedSchema,
+    benefits: z
+      .array(
+        z.object({
+          title: LocalizedSchema,
+          text: LocalizedSchema,
+        }),
+      )
+      .length(3),
+    hubs: z
+      .array(
+        z.object({
+          title: LocalizedSchema,
+          sub: LocalizedSchema,
+          text: LocalizedSchema,
+        }),
+      )
+      .length(3),
+  }),
+  footer: z.object({
+    companyName: LocalizedSchema,
+    description: LocalizedSchema,
+    phone: z.string(),
+    email: z.string(),
+    address: LocalizedSchema,
+    whatsappUrl: z.string(),
+    telegramUrl: z.string(),
+    rights: LocalizedSchema,
+  }),
+});
 
 // ── Auth ──────────────────────────────────────────────────────────────
 export const adminLogin = createServerFn({ method: "POST" })
@@ -58,16 +103,16 @@ export const checkAdminAuth = createServerFn({ method: "GET" }).handler(async ()
 // ── Products ──────────────────────────────────────────────────────────
 const ProductSchema = z.object({
   slug: z.string().min(1),
-  title: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
+  title: LocalizedSchema,
   category: z.string(),
   status: z.enum(["in_stock", "on_order"]),
-  price: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-  description: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-  application: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
+  price: LocalizedSchema,
+  description: LocalizedSchema,
+  application: LocalizedSchema,
   specs: z.array(
     z.object({
-      label: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-      value: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
+      label: LocalizedSchema,
+      value: LocalizedSchema,
     }),
   ),
   image: z.string(),
@@ -102,14 +147,12 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
 // ── Procurements ──────────────────────────────────────────────────────
 const ProcurementSchema = z.object({
   slug: z.string().min(1),
-  title: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
+  title: LocalizedSchema,
   category: z.string(),
   deadline: z.string(),
-  budget: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-  description: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-  requirements: z.array(
-    z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-  ),
+  budget: LocalizedSchema,
+  description: LocalizedSchema,
+  requirements: z.array(LocalizedSchema),
 });
 
 export const adminGetProcurements = createServerFn({ method: "GET" }).handler(async () => {
@@ -138,15 +181,13 @@ export const adminDeleteProcurement = createServerFn({ method: "POST" })
   });
 
 // ── Jobs ──────────────────────────────────────────────────────────────
-const LocalizedListSchema = z.array(
-  z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-);
+const LocalizedListSchema = z.array(LocalizedSchema);
 const JobSchema = z.object({
   slug: z.string().min(1),
-  title: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
+  title: LocalizedSchema,
   category: z.string(),
-  salary: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
-  location: z.object({ ru: z.string(), kk: z.string().optional(), en: z.string().optional() }),
+  salary: LocalizedSchema,
+  location: LocalizedSchema,
   responsibilities: LocalizedListSchema,
   requirements: LocalizedListSchema,
   conditions: LocalizedListSchema,
@@ -187,6 +228,18 @@ export const adminDeleteLead = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ok = dbDeleteLead(data.id);
     return { ok };
+  });
+
+// ── Site content ─────────────────────────────────────────────────────
+export const adminGetSiteContent = createServerFn({ method: "GET" }).handler(async () => {
+  return dbGetSiteContent();
+});
+
+export const adminUpdateSiteContent = createServerFn({ method: "POST" })
+  .inputValidator(SiteContentSchema)
+  .handler(async ({ data }) => {
+    dbUpdateSiteContent(data as SiteContent);
+    return { ok: true };
   });
 
 // ── Dashboard Stats ───────────────────────────────────────────────────

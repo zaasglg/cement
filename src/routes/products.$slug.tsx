@@ -8,7 +8,13 @@ import { getProductData } from "@/lib/api/data.functions";
 import type { StockStatus } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/products/$slug")({
-  head: ({ loaderData }: { loaderData?: { product?: { title: { ru: string }; description: { ru: string }; image: string } | null } }) => {
+  head: ({
+    loaderData,
+  }: {
+    loaderData?: {
+      product?: { title: { ru: string }; description: { ru: string }; image: string } | null;
+    };
+  }) => {
     const product = loaderData?.product;
     return {
       meta: [
@@ -28,7 +34,10 @@ function NotFound() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-32 text-center sm:px-6 lg:px-8">
       <p className="text-muted-foreground">Продукт не найден.</p>
-      <Link to="/products" className="mt-4 inline-block text-brand underline-offset-4 hover:underline">
+      <Link
+        to="/products"
+        className="mt-4 inline-block text-brand underline-offset-4 hover:underline"
+      >
         Вернуться в каталог
       </Link>
     </div>
@@ -45,7 +54,9 @@ function StatusPill({ status }: { status: StockStatus }) {
         (inStock ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600")
       }
     >
-      <span className={"h-1.5 w-1.5 rounded-full " + (inStock ? "bg-emerald-500" : "bg-amber-500")} />
+      <span
+        className={"h-1.5 w-1.5 rounded-full " + (inStock ? "bg-emerald-500" : "bg-amber-500")}
+      />
       {inStock ? ui("in_stock") : ui("on_order")}
     </span>
   );
@@ -59,6 +70,8 @@ function ProductPage() {
 
   if (!product) return <NotFound />;
   const category = productCategories.find((c) => c.id === product.category);
+  const images = Array.from(new Set([product.image, ...product.gallery].filter(Boolean)));
+  const activeImage = images[active] ?? images[0] ?? product.image;
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -74,22 +87,24 @@ function ProductPage() {
         <div>
           <div className="overflow-hidden rounded-2xl border border-border bg-muted">
             <img
-              src={product.gallery[active] ?? product.image}
+              src={activeImage}
               alt={tr(product.title)}
               width={1024}
               height={768}
               className="aspect-[4/3] h-full w-full object-cover"
             />
           </div>
-          {product.gallery.length > 1 && (
+          {images.length > 1 && (
             <div className="mt-4 grid grid-cols-4 gap-3">
-              {product.gallery.map((img, i) => (
+              {images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActive(i)}
                   className={
                     "overflow-hidden rounded-lg border transition-all " +
-                    (active === i ? "border-brand ring-2 ring-brand/30" : "border-border hover:border-foreground/30")
+                    (active === i
+                      ? "border-brand ring-2 ring-brand/30"
+                      : "border-border hover:border-foreground/30")
                   }
                 >
                   <img
@@ -162,8 +177,8 @@ function ProductPage() {
 
           <div className="mt-6 flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-            Прямые поставки от производителя без посредников. Гибкие условия для крупных застройщиков
-            и оптовых баз.
+            Прямые поставки от производителя без посредников. Гибкие условия для крупных
+            застройщиков и оптовых баз.
           </div>
         </div>
       </div>

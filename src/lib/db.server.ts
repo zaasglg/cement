@@ -4,10 +4,12 @@ import {
   products as seedProducts,
   procurements as seedProcurements,
   jobs as seedJobs,
+  siteContent as seedSiteContent,
   type Product,
   type Procurement,
   type Job,
   type Lead,
+  type SiteContent,
 } from "./mock-data";
 
 const DB_DIR = join(process.cwd(), "data");
@@ -19,6 +21,7 @@ type DB = {
   jobs: Job[];
   leads: Lead[];
   sessions: Record<string, string>; // token -> expiresAt ISO
+  siteContent: SiteContent;
 };
 
 function readDB(): DB {
@@ -30,11 +33,29 @@ function readDB(): DB {
       jobs: seedJobs,
       leads: [],
       sessions: {},
+      siteContent: seedSiteContent,
     };
     writeFileSync(DB_PATH, JSON.stringify(initial, null, 2), "utf-8");
     return initial;
   }
-  return JSON.parse(readFileSync(DB_PATH, "utf-8")) as DB;
+  const db = JSON.parse(readFileSync(DB_PATH, "utf-8")) as Partial<DB>;
+  let changed = false;
+
+  if (!db.leads) {
+    db.leads = [];
+    changed = true;
+  }
+  if (!db.sessions) {
+    db.sessions = {};
+    changed = true;
+  }
+  if (!db.siteContent) {
+    db.siteContent = seedSiteContent;
+    changed = true;
+  }
+
+  if (changed) writeDB(db as DB);
+  return db as DB;
 }
 
 function writeDB(db: DB): void {
@@ -151,6 +172,16 @@ export function dbDeleteLead(id: string): boolean {
   if (db.leads.length === before) return false;
   writeDB(db);
   return true;
+}
+
+// ── Site content ─────────────────────────────────────────────────────
+export function dbGetSiteContent(): SiteContent {
+  return readDB().siteContent;
+}
+export function dbUpdateSiteContent(siteContent: SiteContent): void {
+  const db = readDB();
+  db.siteContent = siteContent;
+  writeDB(db);
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────

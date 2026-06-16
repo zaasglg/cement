@@ -1,6 +1,22 @@
 import React from "react";
-import { createFileRoute, Outlet, Link, useRouter, redirect, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingCart, Briefcase, MessageSquare, LogOut, Building2 } from "lucide-react";
+import {
+  createFileRoute,
+  Outlet,
+  Link,
+  useRouter,
+  redirect,
+  useRouterState,
+} from "@tanstack/react-router";
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Briefcase,
+  MessageSquare,
+  LogOut,
+  Building2,
+  FileText,
+} from "lucide-react";
 import { checkAdminAuth, adminLogout } from "@/lib/api/admin.functions";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +37,7 @@ const NAV: { to: any; label: string; icon: React.ComponentType<{ className?: str
   { to: "/admin/products", label: "Продукция", icon: Package },
   { to: "/admin/procurements", label: "Закупки", icon: ShoppingCart },
   { to: "/admin/careers", label: "Вакансии", icon: Briefcase },
+  { to: "/admin/site-content", label: "Контент сайта", icon: FileText },
   { to: "/admin/leads", label: "Заявки", icon: MessageSquare },
 ];
 
