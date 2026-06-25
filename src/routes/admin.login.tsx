@@ -76,11 +76,6 @@ function LoginPage() {
               {loading ? "Вход..." : "Войти"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Пароль по умолчанию: <code className="rounded bg-muted px-1 py-0.5">admin</code>
-            <br />
-            Задайте переменную окружения <code className="rounded bg-muted px-1 py-0.5">ADMIN_PASSWORD</code>
-          </p>
         </div>
       </div>
     </div>
