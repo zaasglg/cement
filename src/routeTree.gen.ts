@@ -16,6 +16,7 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProcurementIndexRouteImport } from './routes/procurement.index'
 import { Route as CareersIndexRouteImport } from './routes/careers.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as UploadsFilenameRouteImport } from './routes/uploads.$filename'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as ProcurementSlugRouteImport } from './routes/procurement.$slug'
 import { Route as CareersSlugRouteImport } from './routes/careers.$slug'
@@ -70,6 +71,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const UploadsFilenameRoute = UploadsFilenameRouteImport.update({
+  id: '/uploads/$filename',
+  path: '/uploads/$filename',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/products/$slug',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/careers/$slug': typeof CareersSlugRoute
   '/procurement/$slug': typeof ProcurementSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/uploads/$filename': typeof UploadsFilenameRoute
   '/admin/': typeof AdminIndexRoute
   '/careers/': typeof CareersIndexRoute
   '/procurement/': typeof ProcurementIndexRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/careers/$slug': typeof CareersSlugRoute
   '/procurement/$slug': typeof ProcurementSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/uploads/$filename': typeof UploadsFilenameRoute
   '/admin': typeof AdminIndexRoute
   '/careers': typeof CareersIndexRoute
   '/procurement': typeof ProcurementIndexRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/careers/$slug': typeof CareersSlugRoute
   '/procurement/$slug': typeof ProcurementSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/uploads/$filename': typeof UploadsFilenameRoute
   '/admin/': typeof AdminIndexRoute
   '/careers/': typeof CareersIndexRoute
   '/procurement/': typeof ProcurementIndexRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/careers/$slug'
     | '/procurement/$slug'
     | '/products/$slug'
+    | '/uploads/$filename'
     | '/admin/'
     | '/careers/'
     | '/procurement/'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/careers/$slug'
     | '/procurement/$slug'
     | '/products/$slug'
+    | '/uploads/$filename'
     | '/admin'
     | '/careers'
     | '/procurement'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/careers/$slug'
     | '/procurement/$slug'
     | '/products/$slug'
+    | '/uploads/$filename'
     | '/admin/'
     | '/careers/'
     | '/procurement/'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   CareersSlugRoute: typeof CareersSlugRoute
   ProcurementSlugRoute: typeof ProcurementSlugRoute
   ProductsSlugRoute: typeof ProductsSlugRoute
+  UploadsFilenameRoute: typeof UploadsFilenameRoute
   CareersIndexRoute: typeof CareersIndexRoute
   ProcurementIndexRoute: typeof ProcurementIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -394,6 +407,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/uploads/$filename': {
+      id: '/uploads/$filename'
+      path: '/uploads/$filename'
+      fullPath: '/uploads/$filename'
+      preLoaderRoute: typeof UploadsFilenameRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/products/$slug': {
       id: '/products/$slug'
@@ -608,6 +628,7 @@ const rootRouteChildren: RootRouteChildren = {
   CareersSlugRoute: CareersSlugRoute,
   ProcurementSlugRoute: ProcurementSlugRoute,
   ProductsSlugRoute: ProductsSlugRoute,
+  UploadsFilenameRoute: UploadsFilenameRoute,
   CareersIndexRoute: CareersIndexRoute,
   ProcurementIndexRoute: ProcurementIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
