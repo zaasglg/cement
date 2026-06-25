@@ -6,7 +6,13 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const isLovable = !!(process.env.LOVABLE_SANDBOX || process.env.DEV_SERVER__PROJECT_PATH);
+
 export default defineConfig({
+  nitro: isLovable ? undefined : { preset: "node-server" },
+  vite: {
+    ssr: { external: ["better-sqlite3"] },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

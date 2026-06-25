@@ -1,5 +1,6 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import Database from "better-sqlite3";
 import { join } from "path";
+import { mkdirSync, existsSync, readFileSync, renameSync } from "fs";
 import {
   products as seedProducts,
   procurements as seedProcurements,
@@ -13,194 +14,265 @@ import {
 } from "./mock-data";
 
 const DB_DIR = join(process.cwd(), "data");
-const DB_PATH = join(DB_DIR, "db.json");
+const DB_PATH = join(DB_DIR, "db.sqlite");
+const LEGACY_JSON_PATH = join(DB_DIR, "db.json");
 
-type DB = {
-  products: Product[];
-  procurements: Procurement[];
-  jobs: Job[];
-  leads: Lead[];
-  sessions: Record<string, string>; // token -> expiresAt ISO
-  siteContent: SiteContent;
-};
+if (!existsSync(DB_DIR)) mkdirSync(DB_DIR, { recursive: true });
 
-function readDB(): DB {
-  if (!existsSync(DB_DIR)) mkdirSync(DB_DIR, { recursive: true });
-  if (!existsSync(DB_PATH)) {
-    const initial: DB = {
-      products: seedProducts,
-      procurements: seedProcurements,
-      jobs: seedJobs,
-      leads: [],
-      sessions: {},
-      siteContent: seedSiteContent,
-    };
-    writeFileSync(DB_PATH, JSON.stringify(initial, null, 2), "utf-8");
-    return initial;
-  }
-  const db = JSON.parse(readFileSync(DB_PATH, "utf-8")) as Partial<DB>;
-  let changed = false;
+const db = new Database(DB_PATH);
 
-  if (!db.leads) {
-    db.leads = [];
-    changed = true;
-  }
-  if (!db.sessions) {
-    db.sessions = {};
-    changed = true;
-  }
-  if (!db.siteContent) {
-    db.siteContent = seedSiteContent;
-    changed = true;
-  }
+db.pragma("journal_mode = WAL");
 
-  if (changed) writeDB(db as DB);
-  return db as DB;
+db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    slug TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS procurements (
+    slug TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS jobs (
+    slug TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS leads (
+    id TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    data TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    expires_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS kv (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+`);
+
+function isEmptyDB(): boolean {
+  const row = db.prepare("SELECT COUNT(*) as c FROM products").get() as { c: number };
+  return row.c === 0;
 }
 
-function writeDB(db: DB): void {
-  if (!existsSync(DB_DIR)) mkdirSync(DB_DIR, { recursive: true });
-  writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+if (isEmptyDB()) {
+  if (existsSync(LEGACY_JSON_PATH)) {
+    const legacy = JSON.parse(readFileSync(LEGACY_JSON_PATH, "utf-8")) as {
+      products: Product[];
+      procurements: Procurement[];
+      jobs: Job[];
+      leads: Lead[];
+      sessions: Record<string, string>;
+      siteContent?: SiteContent;
+    };
+
+    const migrate = db.transaction(() => {
+      const insProduct = db.prepare("INSERT OR IGNORE INTO products (slug, data) VALUES (?, ?)");
+      for (const p of legacy.products ?? []) insProduct.run(p.slug, JSON.stringify(p));
+
+      const insProcurement = db.prepare(
+        "INSERT OR IGNORE INTO procurements (slug, data) VALUES (?, ?)",
+      );
+      for (const p of legacy.procurements ?? []) insProcurement.run(p.slug, JSON.stringify(p));
+
+      const insJob = db.prepare("INSERT OR IGNORE INTO jobs (slug, data) VALUES (?, ?)");
+      for (const j of legacy.jobs ?? []) insJob.run(j.slug, JSON.stringify(j));
+
+      const insLead = db.prepare(
+        "INSERT OR IGNORE INTO leads (id, created_at, data) VALUES (?, ?, ?)",
+      );
+      for (const l of legacy.leads ?? []) insLead.run(l.id, l.createdAt, JSON.stringify(l));
+
+      const insSession = db.prepare(
+        "INSERT OR IGNORE INTO sessions (token, expires_at) VALUES (?, ?)",
+      );
+      for (const [token, expiresAt] of Object.entries(legacy.sessions ?? {})) {
+        insSession.run(token, expiresAt);
+      }
+
+      const content = legacy.siteContent ?? seedSiteContent;
+      db.prepare("INSERT OR IGNORE INTO kv (key, value) VALUES (?, ?)").run(
+        "siteContent",
+        JSON.stringify(content),
+      );
+    });
+
+    migrate();
+    renameSync(LEGACY_JSON_PATH, LEGACY_JSON_PATH + ".migrated");
+  } else {
+    const seed = db.transaction(() => {
+      const insProduct = db.prepare("INSERT INTO products (slug, data) VALUES (?, ?)");
+      for (const p of seedProducts) insProduct.run(p.slug, JSON.stringify(p));
+
+      const insProcurement = db.prepare("INSERT INTO procurements (slug, data) VALUES (?, ?)");
+      for (const p of seedProcurements) insProcurement.run(p.slug, JSON.stringify(p));
+
+      const insJob = db.prepare("INSERT INTO jobs (slug, data) VALUES (?, ?)");
+      for (const j of seedJobs) insJob.run(j.slug, JSON.stringify(j));
+
+      db.prepare("INSERT INTO kv (key, value) VALUES (?, ?)").run(
+        "siteContent",
+        JSON.stringify(seedSiteContent),
+      );
+    });
+    seed();
+  }
 }
 
 // ── Products ──────────────────────────────────────────────────────────
 export function dbGetProducts(): Product[] {
-  return readDB().products;
+  const rows = db.prepare("SELECT data FROM products").all() as { data: string }[];
+  return rows.map((r) => JSON.parse(r.data) as Product);
 }
+
 export function dbGetProduct(slug: string): Product | undefined {
-  return readDB().products.find((p) => p.slug === slug);
+  const row = db.prepare("SELECT data FROM products WHERE slug = ?").get(slug) as
+    | { data: string }
+    | undefined;
+  return row ? (JSON.parse(row.data) as Product) : undefined;
 }
+
 export function dbCreateProduct(product: Product): void {
-  const db = readDB();
-  db.products.push(product);
-  writeDB(db);
+  db.prepare("INSERT INTO products (slug, data) VALUES (?, ?)").run(
+    product.slug,
+    JSON.stringify(product),
+  );
 }
+
 export function dbUpdateProduct(slug: string, updates: Product): boolean {
-  const db = readDB();
-  const idx = db.products.findIndex((p) => p.slug === slug);
-  if (idx === -1) return false;
-  db.products = db.products.map((p, i) => (i === idx ? { ...p, ...updates } : p));
-  writeDB(db);
-  return true;
+  const result = db
+    .prepare("UPDATE products SET slug = ?, data = ? WHERE slug = ?")
+    .run(updates.slug, JSON.stringify(updates), slug);
+  return result.changes > 0;
 }
+
 export function dbDeleteProduct(slug: string): boolean {
-  const db = readDB();
-  const before = db.products.length;
-  db.products = db.products.filter((p) => p.slug !== slug);
-  if (db.products.length === before) return false;
-  writeDB(db);
-  return true;
+  const result = db.prepare("DELETE FROM products WHERE slug = ?").run(slug);
+  return result.changes > 0;
 }
 
 // ── Procurements ──────────────────────────────────────────────────────
 export function dbGetProcurements(): Procurement[] {
-  return readDB().procurements;
+  const rows = db.prepare("SELECT data FROM procurements").all() as { data: string }[];
+  return rows.map((r) => JSON.parse(r.data) as Procurement);
 }
+
 export function dbGetProcurement(slug: string): Procurement | undefined {
-  return readDB().procurements.find((p) => p.slug === slug);
+  const row = db.prepare("SELECT data FROM procurements WHERE slug = ?").get(slug) as
+    | { data: string }
+    | undefined;
+  return row ? (JSON.parse(row.data) as Procurement) : undefined;
 }
+
 export function dbCreateProcurement(item: Procurement): void {
-  const db = readDB();
-  db.procurements.push(item);
-  writeDB(db);
+  db.prepare("INSERT INTO procurements (slug, data) VALUES (?, ?)").run(
+    item.slug,
+    JSON.stringify(item),
+  );
 }
+
 export function dbUpdateProcurement(slug: string, updates: Procurement): boolean {
-  const db = readDB();
-  const idx = db.procurements.findIndex((p) => p.slug === slug);
-  if (idx === -1) return false;
-  db.procurements = db.procurements.map((p, i) => (i === idx ? { ...p, ...updates } : p));
-  writeDB(db);
-  return true;
+  const result = db
+    .prepare("UPDATE procurements SET slug = ?, data = ? WHERE slug = ?")
+    .run(updates.slug, JSON.stringify(updates), slug);
+  return result.changes > 0;
 }
+
 export function dbDeleteProcurement(slug: string): boolean {
-  const db = readDB();
-  const before = db.procurements.length;
-  db.procurements = db.procurements.filter((p) => p.slug !== slug);
-  if (db.procurements.length === before) return false;
-  writeDB(db);
-  return true;
+  const result = db.prepare("DELETE FROM procurements WHERE slug = ?").run(slug);
+  return result.changes > 0;
 }
 
 // ── Jobs ──────────────────────────────────────────────────────────────
 export function dbGetJobs(): Job[] {
-  return readDB().jobs;
+  const rows = db.prepare("SELECT data FROM jobs").all() as { data: string }[];
+  return rows.map((r) => JSON.parse(r.data) as Job);
 }
+
 export function dbGetJob(slug: string): Job | undefined {
-  return readDB().jobs.find((j) => j.slug === slug);
+  const row = db.prepare("SELECT data FROM jobs WHERE slug = ?").get(slug) as
+    | { data: string }
+    | undefined;
+  return row ? (JSON.parse(row.data) as Job) : undefined;
 }
+
 export function dbCreateJob(job: Job): void {
-  const db = readDB();
-  db.jobs.push(job);
-  writeDB(db);
+  db.prepare("INSERT INTO jobs (slug, data) VALUES (?, ?)").run(job.slug, JSON.stringify(job));
 }
+
 export function dbUpdateJob(slug: string, updates: Job): boolean {
-  const db = readDB();
-  const idx = db.jobs.findIndex((j) => j.slug === slug);
-  if (idx === -1) return false;
-  db.jobs = db.jobs.map((j, i) => (i === idx ? { ...j, ...updates } : j));
-  writeDB(db);
-  return true;
+  const result = db
+    .prepare("UPDATE jobs SET slug = ?, data = ? WHERE slug = ?")
+    .run(updates.slug, JSON.stringify(updates), slug);
+  return result.changes > 0;
 }
+
 export function dbDeleteJob(slug: string): boolean {
-  const db = readDB();
-  const before = db.jobs.length;
-  db.jobs = db.jobs.filter((j) => j.slug !== slug);
-  if (db.jobs.length === before) return false;
-  writeDB(db);
-  return true;
+  const result = db.prepare("DELETE FROM jobs WHERE slug = ?").run(slug);
+  return result.changes > 0;
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────
 export function dbGetLeads(): Lead[] {
-  return [...readDB().leads].reverse();
+  const rows = db.prepare("SELECT data FROM leads ORDER BY created_at DESC").all() as {
+    data: string;
+  }[];
+  return rows.map((r) => JSON.parse(r.data) as Lead);
 }
+
 export function dbAddLead(lead: Omit<Lead, "id" | "createdAt">): Lead {
-  const db = readDB();
   const entry: Lead = {
     ...lead,
     id: Date.now().toString(36) + Math.random().toString(36).slice(2),
     createdAt: new Date().toISOString(),
   };
-  db.leads.push(entry);
-  writeDB(db);
+  db.prepare("INSERT INTO leads (id, created_at, data) VALUES (?, ?, ?)").run(
+    entry.id,
+    entry.createdAt,
+    JSON.stringify(entry),
+  );
   return entry;
 }
+
 export function dbDeleteLead(id: string): boolean {
-  const db = readDB();
-  const before = db.leads.length;
-  db.leads = db.leads.filter((l) => l.id !== id);
-  if (db.leads.length === before) return false;
-  writeDB(db);
-  return true;
+  const result = db.prepare("DELETE FROM leads WHERE id = ?").run(id);
+  return result.changes > 0;
 }
 
-// ── Site content ─────────────────────────────────────────────────────
+// ── Site content ──────────────────────────────────────────────────────
 export function dbGetSiteContent(): SiteContent {
-  return readDB().siteContent;
+  const row = db.prepare("SELECT value FROM kv WHERE key = ?").get("siteContent") as
+    | { value: string }
+    | undefined;
+  return row ? (JSON.parse(row.value) as SiteContent) : seedSiteContent;
 }
+
 export function dbUpdateSiteContent(siteContent: SiteContent): void {
-  const db = readDB();
-  db.siteContent = siteContent;
-  writeDB(db);
+  db.prepare("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)").run(
+    "siteContent",
+    JSON.stringify(siteContent),
+  );
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────
 export function dbCreateSession(token: string): void {
-  const db = readDB();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  db.sessions = { ...db.sessions, [token]: expiresAt };
-  writeDB(db);
+  db.prepare("INSERT OR REPLACE INTO sessions (token, expires_at) VALUES (?, ?)").run(
+    token,
+    expiresAt,
+  );
 }
+
 export function dbValidateSession(token: string): boolean {
   if (!token) return false;
-  const db = readDB();
-  const expiresAt = db.sessions[token];
-  if (!expiresAt) return false;
-  return new Date(expiresAt) > new Date();
+  const row = db.prepare("SELECT expires_at FROM sessions WHERE token = ?").get(token) as
+    | { expires_at: string }
+    | undefined;
+  if (!row) return false;
+  return new Date(row.expires_at) > new Date();
 }
+
 export function dbDeleteSession(token: string): void {
-  const db = readDB();
-  const { [token]: _, ...rest } = db.sessions;
-  db.sessions = rest;
-  writeDB(db);
+  db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
 }
