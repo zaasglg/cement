@@ -53,12 +53,8 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/70 glass">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground font-black">
-            EC
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-sm font-bold tracking-tight">Eurasian Cement</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">ТОО</span>
+          <span className="flex h-10 min-w-[40px] items-center justify-center overflow-hidden rounded-md bg-transparent">
+            <img src="/images/logo.png" alt="Eurasian Cement" className="h-full w-auto max-w-none object-contain" />
           </span>
         </Link>
 
