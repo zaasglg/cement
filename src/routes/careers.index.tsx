@@ -35,7 +35,7 @@ function CareersPage() {
       <PageHeader
         eyebrow={ui("nav_careers")}
         title="Открытые вакансии"
-        subtitle="Растите вместе с лидером отрасли. Ищем специалистов на производство, в логистику и коммерцию."
+        subtitle="Растите вместе с нами. Требуются специалисты на производство"
       >
         <div className="flex flex-wrap gap-2">
           <FilterChip active={cat === "all"} onClick={() => setCat("all")}>
