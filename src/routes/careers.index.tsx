@@ -77,7 +77,8 @@ function CareersPage() {
                   </div>
                 </div>
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-colors group-hover:text-brand">
-                  {ui("details")} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  {ui("details")}{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>
             );
